@@ -6,7 +6,7 @@ __author__ = "Jimmy Saw"
 This script is designed to be run just once for each update of assembly_summary_genbank.txt file you can get from:
 ftp://ftp.ncbi.nlm.nih.gov/genomes/genbank/
 The idea is to help you to get lineages first, so you can pick which organism(s) to download for your work.
-Another script can then take the
+Another script can then take the subset to download so that it wouldn't take too long to sift through the original table.
 
 Usage example:
 osu_query_ncbi_genomes_taxids.py -a assembly_summary_genbank.txt -e you@email.com -o test.out (this might take several hours to finish)
