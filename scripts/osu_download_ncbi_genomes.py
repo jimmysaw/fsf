@@ -12,22 +12,22 @@ those you are interested.
 Usage examples:
 
 ## download all genomes available from NCBI
-osu_download_ncbi_genomes.py -a assembly_summary_genbank.txt -d test3 -t all -e you@email.com
+osu_download_ncbi_genomes.py -a assembly_summary_genbank.txt -d test3 -t all -e you@email.com -s download_summary.txt
 
 ## download all genomes within a subset table (selected to check for desired taxonomic affiliation; see osu_query_ncbi_genomes_taxids.py script)
-osu_download_ncbi_genomes.py -a subset.txt -d test3 -t all -e jimmy@hawaii.edu
+osu_download_ncbi_genomes.py -a subset.txt -d test3 -t all -e you@mail.com -s download_summary.txt
 
 ## download first 5 Gammaproteobacteria from a subset table
-osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Gammaproteobacteria -r class -n 5 -e you@email.com
+osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Gammaproteobacteria -r class -n 5 -e you@email.com -s download_summary.txt
 
 ## download all Gammaproteobacteria from a subset table
-osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Gammaproteobacteria -r class -n all -e you@email.com
+osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Gammaproteobacteria -r class -n all -e you@email.com -s download_summary.txt
 
 ## download all Eukaryota from a subset table
-osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Eukaryota -r superkingdom -n all -e you@email.com
+osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Eukaryota -r superkingdom -n all -e you@email.com -s download_summary.txt
 
 ## download 5 Crenarchaeota from a subset table
-osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Crenarchaeota -r phylum -n 5 -e you@email.com
+osu_download_ncbi_genomes.py -a subset.txt -d test3 -t Crenarchaeota -r phylum -n 5 -e you@email.com -s download_summary.txt
 """
 
 import os
@@ -107,7 +107,7 @@ def download_genome(k, v, dd):
                     urllib.urlretrieve(genome_path, genome_out)
                     urllib.urlcleanup()
 
-def sample_by_rank(x, download_dir, email, tax, num, rank):
+def sample_by_rank(x, download_dir, email, tax, num, rank, summary):
     """
     Sample by rank
     :param x:
@@ -120,6 +120,7 @@ def sample_by_rank(x, download_dir, email, tax, num, rank):
     """
     df = pd.read_csv(x, sep="\t", header=1)
     tdict = df.set_index('# assembly_accession').T.to_dict('list')
+    downloaded = '{0}\t{1}\t{2}\t{3}\t{4}\n'.format("accession", "taxid", "rank", "taxonomy", "name")
 
     if not num == "all":
         number = 0
@@ -136,6 +137,7 @@ def sample_by_rank(x, download_dir, email, tax, num, rank):
                     scientific_name = lineage[1]
                     print("Downloading", k, scientific_name, "to", download_dir, "\n")
                     download_genome(k, v, download_dir)
+                    downloaded += '{0}\t{1}\t{2}\t{3}\t{4}\n'.format(k, taxid, rank, tax, scientific_name)
         print("Downloaded first", number, "genomes found out of", target, "genomes required.")
     else:
         print('Downloading all genomes within {0} (Rank: {1}) from {2}\n'.format(tax, rank, x))
@@ -147,8 +149,11 @@ def sample_by_rank(x, download_dir, email, tax, num, rank):
                 scientific_name = lineage[1]
                 print("Downloading", k, scientific_name, "to", download_dir, "\n")
                 download_genome(k, v, download_dir)
+                downloaded += '{0}\t{1}\t{2}\t{3}\t{4}\n'.format(k, taxid, rank, tax, scientific_name)
+    with open(summary, "w") as sum_out:
+        sum_out.write(downloaded)
 
-def download_all_genomes(x, download_dir, email):
+def download_all_genomes(x, download_dir, email, summary):
     """
     Downloads all the genomes from NCBI (use with care!)
     :param x:
@@ -158,6 +163,8 @@ def download_all_genomes(x, download_dir, email):
     """
     df = pd.read_csv(x, sep="\t", header=1)
     tdict = df.set_index('# assembly_accession').T.to_dict('list')
+    downloaded = '{0}\t{1}\t{2}\n'.format("accession", "taxid", "name")
+
     print("Downloading all genomes within", x, "\n")
     for k, v in tdict.iteritems():
         taxid = v[4]
@@ -165,6 +172,7 @@ def download_all_genomes(x, download_dir, email):
         scientific_name = lineage[1]
         print("Downloading", k, scientific_name, "to", download_dir, "\n")
         download_genome(k, v, download_dir)
+        downloaded += '{0}\t{1}\t{2}\n'.format(k, taxid, scientific_name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script downloads genomes from ncbi ftp site")
@@ -174,10 +182,11 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--rank", help="Rank to check (eg:  superkingdom, kingdom, phylum, class, order")
     parser.add_argument("-n", "--number", help="Number to download")
     parser.add_argument("-e", "--email", required=True, help="Your email address")
+    parser.add_argument("-s", "--summary", required=True, help="Download summary")
     args = parser.parse_args()
     if args.tax == 'all':
-        download_all_genomes(args.assembly, args.directory, args.email)
+        download_all_genomes(args.assembly, args.directory, args.email, args.summary)
     else:
-        sample_by_rank(args.assembly, args.directory, args.email, args.tax, args.number, args.rank)
+        sample_by_rank(args.assembly, args.directory, args.email, args.tax, args.number, args.rank, args.summary)
 
 
