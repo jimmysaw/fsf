@@ -62,11 +62,12 @@ def query_rank(tid, em, rank, tax):
     Entrez.email = em
     h = Entrez.efetch(db="taxonomy", id=tid)
     rec = Entrez.read(h)
-    for i in rec[0]['LineageEx']:
-        if i['Rank'] == rank:
-            if i['ScientificName'] == tax:
-                print(i['ScientificName'])
-                return i['ScientificName']
+    if len(rec) > 0:
+        for i in rec[0]['LineageEx']:
+            if i['Rank'] == rank:
+                if i['ScientificName'] == tax:
+                    print(i['ScientificName'])
+                    return i['ScientificName']
 
 def download_genome(k, v, dd):
     """
