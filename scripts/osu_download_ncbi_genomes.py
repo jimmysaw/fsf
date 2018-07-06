@@ -174,6 +174,8 @@ def download_all_genomes(x, download_dir, email, summary):
         print("Downloading", k, scientific_name, "to", download_dir, "\n")
         download_genome(k, v, download_dir)
         downloaded += '{0}\t{1}\t{2}\n'.format(k, taxid, scientific_name)
+    with open(summary, "w") as sum_out:
+        sum_out.write(downloaded)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script downloads genomes from ncbi ftp site")
