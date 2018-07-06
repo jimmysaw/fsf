@@ -49,7 +49,8 @@ def runstats(fasta_file):
     :param fasta_file:
     :return: prints stats
     """
-    locale.setlocale(locale.LC_ALL, 'en_US')
+    loc = locale.setlocale(locale.LC_ALL, '')
+    locale.setlocale(locale.LC_ALL, loc)
 
     seqs = [seq for seq in SeqIO.parse(fasta_file, "fasta")]
     lengths_list = [len(i.seq) for i in seqs]
